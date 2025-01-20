@@ -53,7 +53,7 @@ class JmcomicText:
     # 點擊喜歡
     pattern_html_album_likes = compile(r'<span id="albim_likes_\d+">(.*?)</span>')
     # 觀看
-    pattern_html_album_views = compile(r'<span>(.*?)</span>\n *<span>(次觀看|观看次数)</span>')
+    pattern_html_album_views = compile(r'<span>(.*?)</span>\n *<span>(次觀看|观看次数|次观看次数)</span>')
     # 評論(div)
     pattern_html_album_comment_count = compile(r'<div class="badge"[^>]*?id="total_video_comments">(\d+)</div>'), 0
 
@@ -298,7 +298,11 @@ class JmcomicText:
                 add()
                 # 定位右括号
                 j = find_right_pair(c, i)
-                ExceptionTool.require_true(j != -1, f'未闭合的 {c}{bracket_map[c]}: {title[i:]}')
+                if j == -1:
+                    # 括号未闭合
+                    char_list.append(c)
+                    i += 1
+                    continue
                 # 整个括号的单词结束
                 add(title[i:j])
                 # 移动指针
@@ -393,7 +397,7 @@ class JmPageTool:
     # 收藏页面的本子结果
     pattern_html_favorite_content = compile(
         r'<div id="favorites_album_[^>]*?>[\s\S]*?'
-        r'<a href="/album/(\d+)/">[\s\S]*?'
+        r'<a href="/album/(\d+)/[^"]*">[\s\S]*?'
         r'<div class="video-title title-truncate">([^<]*?)'
         r'</div>'
     )
