@@ -38,7 +38,7 @@ download_album(123, option)
 option.download_album(123)
 ```
 
-## 获取本子/章节/图片的实体类，下载图片
+## 获取本子/章节/图片的实体类，下载图片/封面图
 
 ```python
 from jmcomic import *
@@ -49,23 +49,26 @@ client = JmOption.default().new_jm_client()
 # 本子实体类
 album: JmAlbumDetail = client.get_album_detail('427413')
 
+# 下载本子封面图，保存为 cover.png （图片后缀可指定为jpg、webp等）
+client.download_album_cover('427413', './cover.png')
+
 
 def fetch(photo: JmPhotoDetail):
     # 章节实体类
     photo = client.get_photo_detail(photo.photo_id, False)
     print(f'章节id: {photo.photo_id}')
-    
+
     # 图片实体类
     image: JmImageDetail
     for image in photo:
         print(f'图片url: {image.img_url}')
-        
+
     # 下载单个图片
     client.download_by_image_detail(image, './a.jpg')
     # 如果是已知未混淆的图片，也可以直接使用url来下载
     random_image_domain = JmModuleConfig.DOMAIN_IMAGE_LIST[0]
     client.download_image(f'https://{random_image_domain}/media/albums/416130.jpg', './a.jpg')
-    
+
 
 # 多线程发起请求
 multi_thread_launcher(
@@ -126,6 +129,8 @@ client = JmOption.default().new_jm_client()
 
 # 分页查询，search_site就是禁漫网页上的【站内搜索】
 page: JmSearchPage = client.search_site(search_query='+MANA +无修正', page=1)
+print(f'结果总数: {page.total}, 分页大小: {page.page_size}，页数: {page.page_count}')
+
 # page默认的迭代方式是page.iter_id_title()，每次迭代返回 albun_id, title
 for album_id, title in page:
     print(f'[{album_id}]: {title}')
@@ -168,10 +173,10 @@ from jmcomic import *
 
 option = JmOption.default()
 client = option.new_jm_client()
-client.login('用户名', '密码') # 也可以使用login插件/配置cookies
+client.login('用户名', '密码')  # 也可以使用login插件/配置cookies
 
 # 遍历全部收藏的所有页
-for page in cl.favorite_folder_gen(): # 如果你只想获取特定收藏夹，需要添加folder_id参数
+for page in client.favorite_folder_gen():  # 如果你只想获取特定收藏夹，需要添加folder_id参数
     # 遍历每页结果
     for aid, atitle in page.iter_id_title():
         # aid: 本子的album_id
@@ -183,9 +188,9 @@ for page in cl.favorite_folder_gen(): # 如果你只想获取特定收藏夹，�
 
 # 获取特定收藏夹的单页，使用favorite_folder方法
 page = client.favorite_folder(page=1,
-                          order_by=JmMagicConstants.ORDER_BY_LATEST,
-                          folder_id='0' # 收藏夹id
-                          )
+                              order_by=JmMagicConstants.ORDER_BY_LATEST,
+                              folder_id='0'  # 收藏夹id
+                              )
 ```
 
 ## 分类 / 排行榜
@@ -214,7 +219,7 @@ page: JmCategoryPage = cl.categories_filter(
     page=1,
     time=JmMagicConstants.TIME_ALL,  # 时间选择全部，具体可以写什么请见JmMagicConstants
     category=JmMagicConstants.CATEGORY_ALL,  # 分类选择全部，具体可以写什么请见JmMagicConstants
-    order_by=JmMagicConstants.ORDER_BY_LATEST,  # 按照观看数排序，具体可以写什么请见JmMagicConstants
+    order_by=JmMagicConstants.ORDER_BY_VIEW,  # 按照观看数排序，具体可以写什么请见JmMagicConstants
 )
 
 # 月排行，底层实现也是调的categories_filter
